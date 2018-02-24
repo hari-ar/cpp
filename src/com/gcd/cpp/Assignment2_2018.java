@@ -13,16 +13,14 @@ class ZeroFinder extends Thread{
 
     private int[] hayStackArray;
     private int lowerBound, upperBound;
-    private int threadId;
     private Helper helperInstance;
 
 
     //Constructor
-    ZeroFinder(int[] hayStackArray, int lowerBound, int upperBuond, int threadId, Helper helperInstance) {
+    ZeroFinder(int[] hayStackArray, int lowerBound, int upperBound, Helper helperInstance) {
         this.hayStackArray = hayStackArray;
         this.lowerBound = lowerBound;
-        this.upperBound = upperBuond;
-        this.threadId = threadId;
+        this.upperBound = upperBound;
         this.helperInstance = helperInstance;
     }
 
@@ -35,7 +33,7 @@ class ZeroFinder extends Thread{
             if(!helperInstance.isFound() || (helperInstance.isFound() && index<helperInstance.getIndexPosition()))
             {
                 if(hayStackArray[index]==0){
-                    helperInstance.setAllValues(threadId,index);
+                    helperInstance.setAllValues(index);
                 }
             }
             else{
@@ -60,7 +58,7 @@ class Helper
         return isFound;
     }
 
-    void setAllValues(int foundByThreadId, int indexPosition) {
+    void setAllValues(int indexPosition) {
         if(!isFound){
             isFound = true;
             this.indexPosition = indexPosition;
@@ -105,7 +103,7 @@ public class Assignment2_2018 {
 
         //Starting the threads.
         for(int i=0;i<numberOfThreads;i++){
-            workers[i] = new ZeroFinder(aVeryLargeArray, indexPointer[i], indexPointer[i+1], i+1, helperInstance);
+            workers[i] = new ZeroFinder(aVeryLargeArray, indexPointer[i], indexPointer[i+1], helperInstance);
             workers[i].start();
         }
 
