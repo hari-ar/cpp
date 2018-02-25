@@ -80,9 +80,12 @@ class Question1Helper
 
 public class Assignment2_2018 {
 
+    private static int numberOfThreads = Runtime.getRuntime().availableProcessors();
+
+
     public static void main(String args[]){
 
-        int numberOfThreads = Runtime.getRuntime().availableProcessors();
+
 
 
 //        int[] question1VeryLargeArray = new int[10]; Enabled for debugging. Comment the line below.
@@ -93,11 +96,11 @@ public class Assignment2_2018 {
 
         int[] question1IndexPointer = new int[numberOfThreads+1];
         Question1Helper question1Question1HelperInstance = new Question1Helper();
-        Thread workers[] = new Question1ZeroFinder[numberOfThreads];
+        Thread question1Workers[] = new Question1ZeroFinder[numberOfThreads];
 
         //Initializing array with random values
         for(int i=0;i<question1VeryLargeArray.length;i++){
-            question1VeryLargeArray[i] = (int) (Math.random()*50000);
+            question1VeryLargeArray[i] = (int) (Math.random()*50);
         }
 
         //Code to distribute load between threads
@@ -107,14 +110,14 @@ public class Assignment2_2018 {
 
         //Starting the threads.
         for(int i=0;i<numberOfThreads;i++){
-            workers[i] = new Question1ZeroFinder(question1VeryLargeArray, question1IndexPointer[i], question1IndexPointer[i+1], question1Question1HelperInstance);
-            workers[i].start();
+            question1Workers[i] = new Question1ZeroFinder(question1VeryLargeArray, question1IndexPointer[i], question1IndexPointer[i+1], question1Question1HelperInstance);
+            question1Workers[i].start();
         }
 
         //Code to let the threads join back.
         for(int i=0;i<numberOfThreads;i++){
             try {
-                workers[i].join();
+                question1Workers[i].join();
             } catch (InterruptedException e) {
                 //Do Nothing
             }
@@ -136,142 +139,121 @@ public class Assignment2_2018 {
             System.out.print(" "+value);
         }*/
         long start = System.currentTimeMillis();
-        int N = 10000000;
+        int N = 200000000;
         int question2BigArray[] = new int[N];
+
         int count = 0;
 
-        Question2Helper parallelThreads[] = new Question2Helper[numberOfThreads];
+
         for(int i = 0; i < question2BigArray.length ; i++){
             question2BigArray[i] = i;
         }
         question2BigArray[0] = 0;
         question2BigArray[1] = 0;
+        int prime = 2;
 
-        int index = 2;
-        while(index<(int)(Math.sqrt(N)))
+        while(prime < (int)(Math.sqrt(N)))
         {
-            for(int i = 0; i< numberOfThreads; i++){
-                index = getNextPrime(N,index, question2BigArray);
-                Question2Helper serialHelperOperation = new Question2Helper(question2BigArray,index);
-                serialHelperOperation.run(); //Running as method.. not as thread..!!
-                index++;
+            removeNonPrime(prime,question2BigArray);
+            prime++;
+            while(prime < (int)(Math.sqrt(N)) && question2BigArray[prime] == 0) {
+                prime++;
             }
-            if(index<(int)(Math.sqrt(N))) {
-                for (int i = 0; i < numberOfThreads; i++) {
-                    index++;
-                    index = getNextPrime(N, index, question2BigArray);
-                    //System.out.println("index" + index);
-                    parallelThreads[i] = new Question2Helper(question2BigArray, index);
-                    parallelThreads[i].start();
-                }
-
-
-                try {
-                    for (int i = 0; i < numberOfThreads; i++) {
-                        parallelThreads[i].join();
-                    }
-                } catch (InterruptedException ignored) {
-                }
-
-            } index++;
         }
 
         for(int i = 0; i< N;i++){
             if(question2BigArray[i]!=0){
+               // System.out.println(question2BigArray[i]);
                 count++;
-                //        System.out.println(i);
             }
         }
         long end = System.currentTimeMillis();
         long diff = end-start;
         System.out.println("diff is"+ diff);
         System.out.println("Total number of prime numbers are "+count);
-
-
-}
-
-    private static int getNextPrime(int N, int currentIndex, int[] question2BigArray) {
-        while(currentIndex < (int)(Math.sqrt(N)) && question2BigArray[currentIndex] == 0) {
-            currentIndex++;
-        }
-        return currentIndex;
     }
 
+    private static void removeNonPrime(int prime, int[] question2BigArray) {
+        int lowerBound = prime*prime;
+        int question2IndexPointer[] = new int[numberOfThreads+1];
+        Thread question2Workers[] = new Question2Helper[numberOfThreads];
+
+        //Code to distribute load between threads
+        for(int i=0;i<=numberOfThreads;i++){
+            question2IndexPointer[i] = lowerBound+(i*question2BigArray.length)/numberOfThreads;
+        }
+
+        //Starting the threads.
+        for(int i=0;i<numberOfThreads;i++){
+            question2Workers[i] = new Question2Helper(question2BigArray,question2IndexPointer[i],question2IndexPointer[i+1],prime);
+            question2Workers[i].start();
+        }
+
+        //Code to let the threads join back.
+        for(int i=0;i<numberOfThreads;i++){
+            try {
+                question2Workers[i].join();
+            } catch (InterruptedException ignoreException) { //Do nothing
+                 }
+        }
+    }
 }
 
 class Question2Helper extends Thread{
 
     private int question2BigArray[];
     private int currentPrime;
+    private int lowerBound, upperBound;
 
-
-    int getCurrentPrime() {
-        return currentPrime;
-    }
-
-    Question2Helper(int[] question2BigArray, int currentPrime) {
+    Question2Helper(int[] question2BigArray, int lowerBound, int upperBound, int currentPrime) {
         this.question2BigArray = question2BigArray;
         this.currentPrime = currentPrime;
+        int lowerBoundRemainder = lowerBound%currentPrime;
+        int upperBoundRemainder = upperBound%currentPrime;
+        if(lowerBoundRemainder==0)
+            this.lowerBound = lowerBound;
+        else
+        {
+            if(lowerBound-lowerBoundRemainder>0)
+                this.lowerBound = lowerBound-(lowerBound%currentPrime);
+            else
+                this.lowerBound = lowerBound+(lowerBound%currentPrime);
+        }
+        if(upperBound<question2BigArray.length)
+        {
+            if(upperBoundRemainder==0)
+                this.upperBound = upperBound;
+            else
+                this.upperBound = upperBound - upperBoundRemainder;
+        }
+        else {
+            this.upperBound = question2BigArray.length;
+        }
     }
 
     @Override
     public void run(){
-            int j = currentPrime*currentPrime;
-            while(j < question2BigArray.length){
-                if(question2BigArray[j] % currentPrime == 0)
-                {
-                    question2BigArray[j] = 0; //mark it as non prime
-                }
+        if(lowerBound<upperBound){
+            //System.out.println(currentPrime + ":" +lowerBound + ":" +upperBound);
+            int j = lowerBound;
+            while(j < upperBound){
+                question2BigArray[j] = 0; //mark it as non prime
                 j = j + currentPrime;
             }
+        }
     }
 }
 
 
 
 
-//Code for Sieve of Erathostenes
 
-
-
-
-
-//========================================================
-
-
-//=======================================================================
-/* Below is the code for a single threaded program for the Sieve of Erathostenes
-   You should copy this program to your own java file and give N a value to execute it
-
-class SieveGenerator{
-	static int N = ????;
-	public static void main(String args[]){
-		int f[] = new int[N];
-		for(int j = 0; j < f.length;j++){f[j] = j;}
-		f[0] = 0; f[1] = 0; //eliminate these cases
-		int p = 2;
-		while(p < (int)(Math.sqrt(N))){
-			removeNonPrime(f,p);
-			//get next prime
-			p++;
-			while(p < (int)(Math.sqrt(N)) && f[p] == 0) p++;
-		}
-		//count primes
-		int total = 0;
-		System.out.println();
-		for(int j = 0; j < f.length; j++){
-          if(f[j] != 0) total++;
-	  }
-	  System.out.printf("Number of primes up to %d = %d",f.length,total);
-}
-	static void removeNonPrime(int ff[], int k){
-		//ff[k] == prime number
-		int j = k*k;
-		while(j < ff.length){
-			if(ff[j] % k == 0) ff[j] = 0; //mark it as non prime
-			j = j + ff[k];
-		}
-	}
-}
-*/
-//=======================================================================
+//================================================
+//
+//
+//
+// A
+//
+//
+//
+// =======================
