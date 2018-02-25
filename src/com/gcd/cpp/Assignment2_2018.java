@@ -9,19 +9,19 @@ package com.gcd.cpp;
  */
 // Code for Question 1 here =======================================
 
-class ZeroFinder extends Thread{
+class Question1ZeroFinder extends Thread{
 
     private int[] hayStackArray;
     private int lowerBound, upperBound;
-    private Helper helperInstance;
+    private Question1Helper question1HelperInstance;
 
 
     //Constructor
-    ZeroFinder(int[] hayStackArray, int lowerBound, int upperBound, Helper helperInstance) {
+    Question1ZeroFinder(int[] hayStackArray, int lowerBound, int upperBound, Question1Helper question1HelperInstance) {
         this.hayStackArray = hayStackArray;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
-        this.helperInstance = helperInstance;
+        this.question1HelperInstance = question1HelperInstance;
     }
 
     @Override
@@ -30,10 +30,10 @@ class ZeroFinder extends Thread{
             //System.out.println("thread "+ threadId + " index "+ index + " Value : "+hayStackArray[index]); //Enabled for debuggin.
 
             //Check if a zero is already found at a lower index
-            if(!helperInstance.isFound() || (helperInstance.isFound() && index<helperInstance.getIndexPosition()))
+            if(!question1HelperInstance.isFound() || (question1HelperInstance.isFound() && index< question1HelperInstance.getIndexPosition()))
             {
                 if(hayStackArray[index]==0){
-                    helperInstance.setAllValues(index);
+                    question1HelperInstance.setAllValues(index);
                 }
             }
             else{
@@ -45,7 +45,7 @@ class ZeroFinder extends Thread{
 }
 
 //POJO helper
-class Helper
+class Question1Helper
 {
     private boolean isFound = false;
     private int indexPosition = -1;
@@ -69,6 +69,7 @@ class Helper
             this.indexPosition = indexPosition;
         }
     }
+
 }
 
 //============================================================================//
@@ -81,29 +82,32 @@ public class Assignment2_2018 {
 
     public static void main(String args[]){
 
-//        int[] aVeryLargeArray = new int[10]; Enabled for debugging. Comment the line below.
+        int numberOfThreads = Runtime.getRuntime().availableProcessors();
+
+
+//        int[] question1VeryLargeArray = new int[10]; Enabled for debugging. Comment the line below.
         System.out.println("\n================Begininng of Question1================");
 
         //Initial Declaration//
-        int[] aVeryLargeArray = new int[1000000];
-        int numberOfThreads = Runtime.getRuntime().availableProcessors();
-        int[] indexPointer = new int[numberOfThreads+1];
-        Helper helperInstance = new Helper();
-        Thread workers[] = new ZeroFinder[numberOfThreads];
+        int[] question1VeryLargeArray = new int[1000];
+
+        int[] question1IndexPointer = new int[numberOfThreads+1];
+        Question1Helper question1Question1HelperInstance = new Question1Helper();
+        Thread workers[] = new Question1ZeroFinder[numberOfThreads];
 
         //Initializing array with random values
-        for(int i=0;i<aVeryLargeArray.length;i++){
-            aVeryLargeArray[i] = (int) (Math.random()*50000);
+        for(int i=0;i<question1VeryLargeArray.length;i++){
+            question1VeryLargeArray[i] = (int) (Math.random()*50000);
         }
 
         //Code to distribute load between threads
         for(int i=0;i<=numberOfThreads;i++){
-            indexPointer[i] = (i*aVeryLargeArray.length)/numberOfThreads;
+            question1IndexPointer[i] = (i*question1VeryLargeArray.length)/numberOfThreads;
         }
 
         //Starting the threads.
         for(int i=0;i<numberOfThreads;i++){
-            workers[i] = new ZeroFinder(aVeryLargeArray, indexPointer[i], indexPointer[i+1], helperInstance);
+            workers[i] = new Question1ZeroFinder(question1VeryLargeArray, question1IndexPointer[i], question1IndexPointer[i+1], question1Question1HelperInstance);
             workers[i].start();
         }
 
@@ -117,8 +121,8 @@ public class Assignment2_2018 {
         }
 
         //Getting Index of first 0 occurance.
-        if(helperInstance.isFound())
-            System.out.println("Zero is found in Array. Index Value of first occurance is : "+helperInstance.getIndexPosition());
+        if(question1Question1HelperInstance.isFound())
+            System.out.println("Zero is found in Array. Index Value of first occurance is : "+ question1Question1HelperInstance.getIndexPosition());
         else
             System.out.println("Not found in the Array.!");
 
@@ -127,23 +131,101 @@ public class Assignment2_2018 {
         System.out.println("================Begininng of Question2================");
         //Enabled for debugging.
         //System.out.println("Array is :");
-        /*for (int value : aVeryLargeArray
+        /*for (int value : question1VeryLargeArray
                 ) {
             System.out.print(" "+value);
         }*/
-    }
-//============================================================================//
-//
-// End of all Question 1 info.
-//
-//============================================================================//
+        long start = System.currentTimeMillis();
+        int N = 10000000;
+        int question2BigArray[] = new int[N];
+        int count = 0;
 
-    //End Question 1 =======================================================
+        Question2Helper parallelThreads[] = new Question2Helper[numberOfThreads];
+        for(int i = 0; i < question2BigArray.length ; i++){
+            question2BigArray[i] = i;
+        }
+        question2BigArray[0] = 0;
+        question2BigArray[1] = 0;
+
+        int index = 2;
+        while(index<(int)(Math.sqrt(N)))
+        {
+            for(int i = 0; i< numberOfThreads; i++){
+                index = getNextPrime(N,index, question2BigArray);
+                Question2Helper serialHelperOperation = new Question2Helper(question2BigArray,index);
+                serialHelperOperation.run(); //Running as method.. not as thread..!!
+                index++;
+            }
+            if(index<(int)(Math.sqrt(N))) {
+                for (int i = 0; i < numberOfThreads; i++) {
+                    index++;
+                    index = getNextPrime(N, index, question2BigArray);
+                    //System.out.println("index" + index);
+                    parallelThreads[i] = new Question2Helper(question2BigArray, index);
+                    parallelThreads[i].start();
+                }
+
+
+                try {
+                    for (int i = 0; i < numberOfThreads; i++) {
+                        parallelThreads[i].join();
+                    }
+                } catch (InterruptedException ignored) {
+                }
+
+            } index++;
+        }
+
+        for(int i = 0; i< N;i++){
+            if(question2BigArray[i]!=0){
+                count++;
+                //        System.out.println(i);
+            }
+        }
+        long end = System.currentTimeMillis();
+        long diff = end-start;
+        System.out.println("diff is"+ diff);
+        System.out.println("Total number of prime numbers are "+count);
 
 
 }
 
+    private static int getNextPrime(int N, int currentIndex, int[] question2BigArray) {
+        while(currentIndex < (int)(Math.sqrt(N)) && question2BigArray[currentIndex] == 0) {
+            currentIndex++;
+        }
+        return currentIndex;
+    }
 
+}
+
+class Question2Helper extends Thread{
+
+    private int question2BigArray[];
+    private int currentPrime;
+
+
+    int getCurrentPrime() {
+        return currentPrime;
+    }
+
+    Question2Helper(int[] question2BigArray, int currentPrime) {
+        this.question2BigArray = question2BigArray;
+        this.currentPrime = currentPrime;
+    }
+
+    @Override
+    public void run(){
+            int j = currentPrime*currentPrime;
+            while(j < question2BigArray.length){
+                if(question2BigArray[j] % currentPrime == 0)
+                {
+                    question2BigArray[j] = 0; //mark it as non prime
+                }
+                j = j + currentPrime;
+            }
+    }
+}
 
 
 
