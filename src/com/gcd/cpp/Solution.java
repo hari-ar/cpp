@@ -1,8 +1,9 @@
 package com.gcd.cpp;
 
-import java.awt.*;
+
 import java.util.*;
 import java.util.List;
+import java.awt.Point;
 
 public class Solution {
     public static void main(String args[]) throws Exception {

@@ -1,5 +1,8 @@
 package com.gcd.cpp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * Student name: Aahuya Rakshaka Hari Lakshmi Narasimhan
@@ -12,15 +15,15 @@ class Question1ZeroFinder extends Thread{
 
     private int[] hayStackArray;
     private int lowerBound, upperBound;
-    private Question1Helper question1HelperInstance;
+    private As2Question1Helper as2Question1HelperInstance;
 
 
     //Constructor
-    Question1ZeroFinder(int[] hayStackArray, int lowerBound, int upperBound, Question1Helper question1HelperInstance) {
+    Question1ZeroFinder(int[] hayStackArray, int lowerBound, int upperBound, As2Question1Helper as2Question1HelperInstance) {
         this.hayStackArray = hayStackArray;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
-        this.question1HelperInstance = question1HelperInstance;
+        this.as2Question1HelperInstance = as2Question1HelperInstance;
     }
 
     @Override
@@ -29,10 +32,10 @@ class Question1ZeroFinder extends Thread{
             //System.out.println("thread "+ threadId + " index "+ index + " Value : "+hayStackArray[index]); //Enabled for debuggin.
 
             //Check if a zero is already found at a lower index
-            if(!question1HelperInstance.isFound() || (question1HelperInstance.isFound() && index< question1HelperInstance.getIndexPosition()))
+            if(!as2Question1HelperInstance.isFound() || (as2Question1HelperInstance.isFound() && index< as2Question1HelperInstance.getIndexPosition()))
             {
                 if(hayStackArray[index]==0){
-                    question1HelperInstance.setAllValues(index);
+                    as2Question1HelperInstance.setAllValues(index);
                 }
             }
             else{
@@ -41,10 +44,27 @@ class Question1ZeroFinder extends Thread{
             }
         }
     }
-}
+
+
+    public int[] oddNumbers(int l, int r) {
+
+        List<Integer> list = new ArrayList();
+
+        for(int i = l ; i<=r; i++){
+            if(i%2==1)
+            list.add(i);
+        }
+        int[] array = new int[list.size()];
+        for(int i=0;i<list.size();i++){
+        array[i]=list.get(i);
+        }
+        return array;
+    }
+
+    }
 
 //POJO helper
-class Question1Helper
+class As2Question1Helper
 {
     private boolean isFound = false;
     private int indexPosition = -1;
@@ -94,7 +114,7 @@ public class Assignment2_2018 {
         int[] question1VeryLargeArray = new int[1000];
 
         int[] question1IndexPointer = new int[numberOfThreads+1];
-        Question1Helper question1Question1HelperInstance = new Question1Helper();
+        As2Question1Helper question1As2Question1HelperInstance = new As2Question1Helper();
         Thread question1Workers[] = new Question1ZeroFinder[numberOfThreads];
 
         //Initializing array with random values
@@ -109,7 +129,7 @@ public class Assignment2_2018 {
 
         //Starting the threads.
         for(int i=0;i<numberOfThreads;i++){
-            question1Workers[i] = new Question1ZeroFinder(question1VeryLargeArray, question1IndexPointer[i], question1IndexPointer[i+1], question1Question1HelperInstance);
+            question1Workers[i] = new Question1ZeroFinder(question1VeryLargeArray, question1IndexPointer[i], question1IndexPointer[i+1], question1As2Question1HelperInstance);
             question1Workers[i].start();
         }
 
@@ -123,8 +143,8 @@ public class Assignment2_2018 {
         }
 
         //Getting Index of first 0 occurance.
-        if(question1Question1HelperInstance.isFound())
-            System.out.println("Zero is found in Array. Index Value of first occurance is : "+ question1Question1HelperInstance.getIndexPosition());
+        if(question1As2Question1HelperInstance.isFound())
+            System.out.println("Zero is found in Array. Index Value of first occurance is : "+ question1As2Question1HelperInstance.getIndexPosition());
         else
             System.out.println("Not found in the Array.!");
 
@@ -293,15 +313,3 @@ class Question2ArrayParallel extends Thread {
 }
 
 
-
-
-
-//================================================
-//
-//
-//
-// A
-//
-//
-//
-// =======================
